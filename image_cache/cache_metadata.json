@@ -75,6 +75,10 @@
     "city street": {
       "count": 1,
       "last_updated": "2026-02-10T18:56:06.627350"
+    },
+    "architecture building": {
+      "count": 1,
+      "last_updated": "2026-02-10T21:21:26.937013"
     }
   },
   "last_cleanup": null
