@@ -493,7 +493,7 @@ def logout():
     """Logout user"""
     session.pop('user_id', None)
     session.pop('username', None)
-    return redirect(url_for('index'))
+    return redirect(url_for('login'))
 
 
 @app.route('/dashboard')
