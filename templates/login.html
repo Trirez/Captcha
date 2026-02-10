@@ -83,19 +83,30 @@
 
                         <!-- Cloudflare Captcha -->
                         <div id="cloudflare-captcha-container" class="captcha-container-inner" style="display: none;">
-                            <div class="cloudflare-widget" id="cf-widget">
-                                <div class="cf-spinner"></div>
-                                <div class="cf-success">✓</div>
-                                <div class="cf-checkbox-wrapper">
-                                    <input type="checkbox" id="cf-checkbox">
-                                    <label for="cf-checkbox">
-                                        <span class="cf-checkmark"></span>
-                                        <span class="cf-text">I'm not a robot</span>
-                                    </label>
+                            <div class="cf-widget-box" id="cf-widget">
+                                <!-- State 1: Default (checkbox) -->
+                                <div class="cf-state cf-state-default" id="cf-state-default">
+                                    <div class="cf-check-area" id="cf-click-area">
+                                        <span class="cf-box"></span>
+                                        <span class="cf-label">I'm not a robot</span>
+                                    </div>
+                                    <div class="cf-brand">🛡️ protected</div>
                                 </div>
-                                <div class="cf-branding">
-                                    <span class="cf-logo">🛡️</span>
-                                    <span>protected</span>
+                                <!-- State 2: Verifying (spinner) -->
+                                <div class="cf-state cf-state-verifying" id="cf-state-verifying" style="display:none;">
+                                    <div class="cf-check-area">
+                                        <span class="cf-spinner-icon"></span>
+                                        <span class="cf-label">Verifying...</span>
+                                    </div>
+                                    <div class="cf-brand">🛡️ protected</div>
+                                </div>
+                                <!-- State 3: Verified (success) -->
+                                <div class="cf-state cf-state-verified" id="cf-state-verified" style="display:none;">
+                                    <div class="cf-check-area">
+                                        <span class="cf-done-icon">✓</span>
+                                        <span class="cf-label cf-label-green">Verified</span>
+                                    </div>
+                                    <div class="cf-brand">🛡️ protected</div>
                                 </div>
                             </div>
                             <input type="hidden" id="cf-captcha-input" name="cf_verified" value="false">
@@ -227,9 +238,9 @@
 
         // Cloudflare Captcha
         async function loadCloudfareCaptcha() {
-            const widget = document.getElementById('cf-widget');
-            widget.classList.remove('verifying', 'verified');
-            document.getElementById('cf-checkbox').checked = false;
+            document.getElementById('cf-state-default').style.display = 'flex';
+            document.getElementById('cf-state-verifying').style.display = 'none';
+            document.getElementById('cf-state-verified').style.display = 'none';
             document.getElementById('cf-captcha-input').value = 'false';
 
             const res = await fetch('/api/cloudflare-captcha');
@@ -237,51 +248,68 @@
             cfChallengeId = data.challenge_id;
         }
 
-        document.getElementById('cf-checkbox').addEventListener('change', async function () {
-            if (this.checked && cfChallengeId) {
-                const widget = document.getElementById('cf-widget');
-                widget.classList.add('verifying');
-                document.querySelector('.cf-spinner').style.display = 'block';
+        document.getElementById('cf-click-area').addEventListener('click', async function () {
+            if (!cfChallengeId) return;
 
-                // Simulate verification delay
-                await new Promise(resolve => setTimeout(resolve, 1500));
+            // Switch to verifying state
+            document.getElementById('cf-state-default').style.display = 'none';
+            document.getElementById('cf-state-verifying').style.display = 'flex';
 
-                const res = await fetch('/api/cloudflare-captcha/verify', {
+            // Step 1: Complete the challenge to get a token
+            const completeRes = await fetch('/api/cloudflare-captcha/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ challenge_id: cfChallengeId })
+            });
+            const completeData = await completeRes.json();
+
+            if (completeData.success && completeData.token) {
+                await new Promise(resolve => setTimeout(resolve, 800));
+
+                // Step 2: Verify the token
+                const verifyRes = await fetch('/api/cloudflare-captcha/verify', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ challenge_id: cfChallengeId })
+                    body: JSON.stringify({ token: completeData.token })
                 });
-                const data = await res.json();
+                const verifyData = await verifyRes.json();
 
-                document.querySelector('.cf-spinner').style.display = 'none';
-
-                if (data.success) {
-                    widget.classList.remove('verifying');
-                    widget.classList.add('verified');
-                    document.querySelector('.cf-success').style.display = 'flex';
+                if (verifyData.success) {
+                    document.getElementById('cf-state-verifying').style.display = 'none';
+                    document.getElementById('cf-state-verified').style.display = 'flex';
                     document.getElementById('cf-captcha-input').value = 'true';
+                    return;
                 }
             }
+            // On failure, go back to default
+            document.getElementById('cf-state-verifying').style.display = 'none';
+            document.getElementById('cf-state-default').style.display = 'flex';
         });
 
         // Slider Captcha
         async function loadSliderCaptcha() {
-            const res = await fetch('/api/sliding-puzzle');
+            const res = await fetch('/api/puzzle-captcha/sliding');
             const data = await res.json();
 
             document.getElementById('slider-bg').src = data.background;
             document.getElementById('slider-piece').src = data.piece;
-            document.getElementById('slider-piece').style.top = data.piece_y + 'px';
+            document.getElementById('slider-piece').style.top = (data.piece_y - 10) + 'px';
             document.getElementById('slider-piece').style.left = '10px';
+            document.getElementById('puzzle-slider').max = data.puzzle_width - data.piece_size;
             document.getElementById('puzzle-slider').value = 0;
             document.getElementById('slider-progress').style.width = '0%';
+            // Position relative to container, piece image has 10px padding on left
+            // So visual starts at 10px inside image. To align with 0, need left=-10
+            document.getElementById('slider-piece').style.left = '-10px';
             sliderCorrectX = data.correct_x;
         }
 
         document.getElementById('puzzle-slider').addEventListener('input', function () {
             const piece = document.getElementById('slider-piece');
-            piece.style.left = (10 + parseInt(this.value)) + 'px';
-            document.getElementById('slider-progress').style.width = (this.value / 250 * 100) + '%';
+            // piece has 10px transparent padding, so visual part starts at 10px
+            // We want visual part at 'value' px. So piece.left = value - 10
+            piece.style.left = (parseInt(this.value) - 10) + 'px';
+            document.getElementById('slider-progress').style.width = (this.value / this.max * 100) + '%';
             document.getElementById('slider-captcha-input').value = this.value;
         });
 

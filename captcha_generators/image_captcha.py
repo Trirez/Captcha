@@ -28,7 +28,7 @@ class ImageCaptcha:
             'cat': {'emoji': '🐱', 'query': 'cat kitten', 'colors': [(128, 128, 128), (255, 165, 0), (60, 60, 60)]},
             'bird': {'emoji': '🐦', 'query': 'bird wildlife', 'colors': [(135, 206, 250), (255, 99, 71), (50, 205, 50)]},
         }
-        self.use_unsplash = False  # Use generated images by default (faster)
+        self.use_unsplash = True  # Use Unsplash API for real images
         
     def set_api_key(self, api_key):
         """Set the Unsplash API key"""

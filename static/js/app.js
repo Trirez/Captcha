@@ -167,15 +167,10 @@ let cfVerified = false;
 
 async function loadCloudflareCaptcha() {
     cfVerified = false;
-    const widget = document.getElementById('cloudflare-widget');
-    const checkbox = document.getElementById('cf-checkbox');
-    const spinner = document.getElementById('cf-spinner');
-    const success = document.getElementById('cf-success');
-
-    widget.classList.remove('verifying', 'verified');
-    checkbox.checked = false;
-    spinner.classList.remove('show');
-    success.classList.remove('show');
+    document.getElementById('demo-cf-default').style.display = 'flex';
+    document.getElementById('demo-cf-verifying').style.display = 'none';
+    document.getElementById('demo-cf-verified').style.display = 'none';
+    document.getElementById('cloudflare-result').className = 'result-message';
 
     try {
         await fetch('/api/cloudflare-captcha');
@@ -184,42 +179,33 @@ async function loadCloudflareCaptcha() {
     }
 }
 
-document.getElementById('cf-checkbox').addEventListener('change', async function () {
+document.getElementById('demo-cf-click').addEventListener('click', async function () {
     if (cfVerified) return;
 
-    const widget = document.getElementById('cloudflare-widget');
-    const spinner = document.getElementById('cf-spinner');
-    const successEl = document.getElementById('cf-success');
+    // Switch to verifying state
+    document.getElementById('demo-cf-default').style.display = 'none';
+    document.getElementById('demo-cf-verifying').style.display = 'flex';
 
-    if (this.checked) {
-        widget.classList.add('verifying');
-        spinner.classList.add('show');
+    try {
+        const res = await fetch('/api/cloudflare-captcha/complete', { method: 'POST' });
+        const data = await res.json();
 
-        try {
-            const res = await fetch('/api/cloudflare-captcha/complete', { method: 'POST' });
-            const data = await res.json();
+        await new Promise(r => setTimeout(r, 1000));
 
-            await new Promise(r => setTimeout(r, 1000));
-
-            spinner.classList.remove('show');
-
-            if (data.success) {
-                widget.classList.remove('verifying');
-                widget.classList.add('verified');
-                successEl.classList.add('show');
-                cfVerified = true;
-                showResult('cloudflare-result', true, 'Verification successful!');
-            } else {
-                widget.classList.remove('verifying');
-                this.checked = false;
-                showResult('cloudflare-result', false, data.error || 'Verification failed');
-            }
-        } catch (e) {
-            spinner.classList.remove('show');
-            widget.classList.remove('verifying');
-            this.checked = false;
-            console.error('Cloudflare verification failed:', e);
+        if (data.success) {
+            document.getElementById('demo-cf-verifying').style.display = 'none';
+            document.getElementById('demo-cf-verified').style.display = 'flex';
+            cfVerified = true;
+            showResult('cloudflare-result', true, 'Verification successful!');
+        } else {
+            document.getElementById('demo-cf-verifying').style.display = 'none';
+            document.getElementById('demo-cf-default').style.display = 'flex';
+            showResult('cloudflare-result', false, data.error || 'Verification failed');
         }
+    } catch (e) {
+        document.getElementById('demo-cf-verifying').style.display = 'none';
+        document.getElementById('demo-cf-default').style.display = 'flex';
+        console.error('Cloudflare verification failed:', e);
     }
 });
 
@@ -238,7 +224,7 @@ async function loadSlidingPuzzle() {
         const piece = document.getElementById('sliding-piece');
         piece.src = slidingData.piece;
         piece.style.top = `${slidingData.piece_y - 10}px`;
-        piece.style.left = '0px';
+        piece.style.left = '-10px';
 
         const slider = document.getElementById('puzzle-slider');
         slider.value = 0;

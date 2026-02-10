@@ -103,20 +103,31 @@
                     <p>Click the checkbox to verify you're human</p>
                 </div>
                 <div class="captcha-container">
-                    <div class="cloudflare-widget" id="cloudflare-widget">
-                        <div class="cf-checkbox-wrapper">
-                            <input type="checkbox" id="cf-checkbox">
-                            <label for="cf-checkbox">
-                                <span class="cf-checkmark"></span>
-                                <span class="cf-text">I am human</span>
-                            </label>
+                    <div class="cf-widget-box" id="cloudflare-widget">
+                        <!-- State 1: Default -->
+                        <div class="cf-state cf-state-default" id="demo-cf-default">
+                            <div class="cf-check-area" id="demo-cf-click">
+                                <span class="cf-box"></span>
+                                <span class="cf-label">I am human</span>
+                            </div>
+                            <div class="cf-brand">☁️ Protected by Cloudflare</div>
                         </div>
-                        <div class="cf-branding">
-                            <span class="cf-logo">☁️</span>
-                            <span class="cf-label">Protected by Cloudflare</span>
+                        <!-- State 2: Verifying -->
+                        <div class="cf-state cf-state-verifying" id="demo-cf-verifying" style="display:none;">
+                            <div class="cf-check-area">
+                                <span class="cf-spinner-icon"></span>
+                                <span class="cf-label">Verifying...</span>
+                            </div>
+                            <div class="cf-brand">☁️ Protected by Cloudflare</div>
                         </div>
-                        <div class="cf-spinner" id="cf-spinner"></div>
-                        <div class="cf-success" id="cf-success">✓</div>
+                        <!-- State 3: Verified -->
+                        <div class="cf-state cf-state-verified" id="demo-cf-verified" style="display:none;">
+                            <div class="cf-check-area">
+                                <span class="cf-done-icon">✓</span>
+                                <span class="cf-label cf-label-green">Verified</span>
+                            </div>
+                            <div class="cf-brand">☁️ Protected by Cloudflare</div>
+                        </div>
                     </div>
                     <button class="refresh-btn standalone" id="refresh-cloudflare-captcha">
                         🔄 Reset

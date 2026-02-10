@@ -23,7 +23,7 @@ class UnsplashClient:
         self.api_key = api_key or os.environ.get('UNSPLASH_API_KEY') or self.DEFAULT_API_KEY
         self.base_url = "https://api.unsplash.com"
         self.use_cache = True  # Enable caching by default
-        self.cache_only_mode = True  # Default to cache-only for faster loading (no slow API calls)
+        self.cache_only_mode = False  # Allow API calls, cache results for faster subsequent loads
         
     def set_api_key(self, api_key):
         """Set the API key"""
@@ -74,7 +74,7 @@ class UnsplashClient:
                 f"{self.base_url}/photos/random",
                 headers=headers,
                 params=params,
-                timeout=10
+                timeout=5
             )
             
             if response.status_code == 200:
@@ -145,7 +145,7 @@ class UnsplashClient:
                 f"{self.base_url}/search/photos",
                 headers=headers,
                 params=params,
-                timeout=10
+                timeout=5
             )
             
             if response.status_code == 200:
