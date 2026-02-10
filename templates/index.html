@@ -49,6 +49,10 @@
                 <span class="tab-icon">🎯</span>
                 <span class="tab-label">Drag</span>
             </button>
+            <button class="tab-btn" data-tab="audio" role="tab" aria-selected="false">
+                <span class="tab-icon">🔊</span>
+                <span class="tab-label">Audio</span>
+            </button>
         </nav>
 
         <!-- Captcha Panels -->
@@ -183,6 +187,43 @@
                         <button class="refresh-btn standalone" id="refresh-drag-captcha">🔄</button>
                     </div>
                     <div class="result-message" id="drag-result"></div>
+                </div>
+            </section>
+
+            <!-- Audio Captcha -->
+            <section class="panel" id="audio-panel" role="tabpanel">
+                <div class="panel-header">
+                    <h2>Audio Captcha</h2>
+                    <p>Listen to the audio and type the digits you hear</p>
+                </div>
+                <div class="captcha-container">
+                    <div class="audio-player-wrapper">
+                        <audio id="audio-captcha-player" preload="auto"></audio>
+                        <div class="audio-controls">
+                            <button class="audio-play-btn" id="play-audio-captcha" title="Play audio">
+                                <span class="play-icon">▶</span>
+                            </button>
+                            <div class="audio-visualizer" id="audio-visualizer">
+                                <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                                <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                                <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                                <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                            </div>
+                            <button class="audio-replay-btn" id="replay-audio-captcha" title="Replay">
+                                🔄
+                            </button>
+                        </div>
+                        <p class="audio-hint">Click play, then type the digits you hear</p>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="audio-captcha-input" placeholder="Enter the digits" maxlength="5"
+                            autocomplete="off">
+                        <button class="verify-btn" id="verify-audio-captcha">Verify</button>
+                    </div>
+                    <button class="refresh-btn standalone" id="refresh-audio-captcha">
+                        🔄 New Audio
+                    </button>
+                    <div class="result-message" id="audio-result"></div>
                 </div>
             </section>
         </main>

@@ -3,6 +3,7 @@ from captcha_generators.text_captcha import TextCaptcha
 from captcha_generators.image_captcha import ImageCaptcha
 from captcha_generators.cloudflare_captcha import CloudflareCaptcha
 from captcha_generators.puzzle_captcha import PuzzleCaptcha
+from captcha_generators.audio_captcha import AudioCaptcha
 
 print('Testing TextCaptcha...')
 tc = TextCaptcha()
@@ -27,5 +28,10 @@ print(f'  Correct X: {result["correct_x"]}, Piece Y: {result["piece_y"]}')
 print('Testing PuzzleCaptcha (drag)...')
 result = pc.generate_drag_puzzle()
 print(f'  Pieces: {len(result["pieces"])}, Positions: {len(result["positions"])}')
+
+print('Testing AudioCaptcha...')
+ac = AudioCaptcha()
+result = ac.generate()
+print(f'  Text length: {len(result["text"])}, Audio generated: {len(result["audio"]) > 100}')
 
 print('ALL TESTS PASSED!')

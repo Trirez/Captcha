@@ -33,6 +33,7 @@ function loadCaptchaForTab(tab) {
         case 'cloudflare': loadCloudflareCaptcha(); break;
         case 'sliding': loadSlidingPuzzle(); break;
         case 'drag': loadDragPuzzle(); break;
+        case 'audio': loadAudioCaptcha(); break;
     }
 }
 
@@ -437,6 +438,90 @@ document.getElementById('verify-drag').addEventListener('click', async () => {
 });
 
 document.getElementById('refresh-drag-captcha').addEventListener('click', loadDragPuzzle);
+
+// ===== Audio Captcha =====
+let audioPlaying = false;
+
+async function loadAudioCaptcha() {
+    audioPlaying = false;
+    const visualizer = document.getElementById('audio-visualizer');
+    visualizer.classList.remove('playing');
+    const playBtn = document.getElementById('play-audio-captcha');
+    playBtn.querySelector('.play-icon').textContent = '▶';
+    document.getElementById('audio-captcha-input').value = '';
+
+    try {
+        const res = await fetch('/api/audio-captcha');
+        const data = await res.json();
+        const player = document.getElementById('audio-captcha-player');
+        player.src = data.audio;
+        document.getElementById('audio-captcha-input').maxLength = data.length;
+    } catch (e) {
+        console.error('Failed to load audio captcha:', e);
+    }
+}
+
+document.getElementById('play-audio-captcha').addEventListener('click', () => {
+    const player = document.getElementById('audio-captcha-player');
+    const visualizer = document.getElementById('audio-visualizer');
+    const playBtn = document.getElementById('play-audio-captcha');
+
+    if (player.paused) {
+        player.play();
+        visualizer.classList.add('playing');
+        playBtn.querySelector('.play-icon').textContent = '⏸';
+        audioPlaying = true;
+    } else {
+        player.pause();
+        visualizer.classList.remove('playing');
+        playBtn.querySelector('.play-icon').textContent = '▶';
+        audioPlaying = false;
+    }
+});
+
+document.getElementById('audio-captcha-player').addEventListener('ended', () => {
+    const visualizer = document.getElementById('audio-visualizer');
+    const playBtn = document.getElementById('play-audio-captcha');
+    visualizer.classList.remove('playing');
+    playBtn.querySelector('.play-icon').textContent = '▶';
+    audioPlaying = false;
+});
+
+document.getElementById('replay-audio-captcha').addEventListener('click', () => {
+    const player = document.getElementById('audio-captcha-player');
+    const visualizer = document.getElementById('audio-visualizer');
+    const playBtn = document.getElementById('play-audio-captcha');
+    player.currentTime = 0;
+    player.play();
+    visualizer.classList.add('playing');
+    playBtn.querySelector('.play-icon').textContent = '⏸';
+    audioPlaying = true;
+});
+
+document.getElementById('verify-audio-captcha').addEventListener('click', async () => {
+    const answer = document.getElementById('audio-captcha-input').value;
+    try {
+        const res = await fetch('/api/audio-captcha/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ answer })
+        });
+        const data = await res.json();
+        showResult('audio-result', data.success, data.message);
+        if (!data.success) {
+            document.getElementById('audio-captcha-input').classList.add('shake');
+            setTimeout(() => document.getElementById('audio-captcha-input').classList.remove('shake'), 400);
+        }
+    } catch (e) {
+        console.error('Audio verification failed:', e);
+    }
+});
+
+document.getElementById('audio-captcha-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') document.getElementById('verify-audio-captcha').click();
+});
+
+document.getElementById('refresh-audio-captcha').addEventListener('click', loadAudioCaptcha);
 
 // ===== Initialize =====
 document.addEventListener('DOMContentLoaded', () => {

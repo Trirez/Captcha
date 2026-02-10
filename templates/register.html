@@ -72,6 +72,9 @@
                             <button type="button" class="captcha-type-btn" data-type="slider">
                                 <span>🧩</span> Slider
                             </button>
+                            <button type="button" class="captcha-type-btn" data-type="audio">
+                                <span>🔊</span> Audio
+                            </button>
                         </div>
                         <input type="hidden" id="captcha_type" name="captcha_type" value="text">
 
@@ -139,6 +142,38 @@
                             </div>
                             <input type="hidden" id="slider-captcha-input" name="slider_position" value="0">
                         </div>
+
+                        <!-- Audio Captcha -->
+                        <div id="audio-captcha-container" class="captcha-container-inner" style="display: none;">
+                            <div class="audio-player-wrapper">
+                                <audio id="audio-captcha-player" preload="auto"></audio>
+                                <div class="audio-controls">
+                                    <button type="button" class="audio-play-btn" id="auth-play-audio"
+                                        title="Play audio">
+                                        <span class="play-icon">▶</span>
+                                    </button>
+                                    <div class="audio-visualizer" id="auth-audio-visualizer">
+                                        <div class="bar"></div>
+                                        <div class="bar"></div>
+                                        <div class="bar"></div>
+                                        <div class="bar"></div>
+                                        <div class="bar"></div>
+                                        <div class="bar"></div>
+                                        <div class="bar"></div>
+                                        <div class="bar"></div>
+                                        <div class="bar"></div>
+                                        <div class="bar"></div>
+                                        <div class="bar"></div>
+                                        <div class="bar"></div>
+                                    </div>
+                                    <button type="button" class="audio-replay-btn" id="auth-replay-audio"
+                                        title="Replay">🔄</button>
+                                </div>
+                                <p class="audio-hint">Listen and type the digits you hear</p>
+                            </div>
+                            <input type="text" id="audio-captcha-input" name="audio_answer"
+                                placeholder="Enter the digits" autocomplete="off" maxlength="5">
+                        </div>
                     </div>
 
                     <button type="submit" class="auth-submit-btn">Create Account</button>
@@ -195,6 +230,9 @@
                         break;
                     case 'slider':
                         await loadSliderCaptcha();
+                        break;
+                    case 'audio':
+                        await loadAudioCaptcha();
                         break;
                 }
             } catch (e) {
@@ -324,6 +362,47 @@
             piece.style.left = (parseInt(this.value) - 10) + 'px';
             document.getElementById('slider-progress').style.width = (this.value / this.max * 100) + '%';
             document.getElementById('slider-captcha-input').value = this.value;
+        });
+
+        // Audio Captcha
+        async function loadAudioCaptcha() {
+            const visualizer = document.getElementById('auth-audio-visualizer');
+            visualizer.classList.remove('playing');
+            document.getElementById('auth-play-audio').querySelector('.play-icon').textContent = '▶';
+            document.getElementById('audio-captcha-input').value = '';
+
+            const res = await fetch('/api/audio-captcha');
+            const data = await res.json();
+            document.getElementById('audio-captcha-player').src = data.audio;
+            document.getElementById('audio-captcha-input').maxLength = data.length;
+        }
+
+        document.getElementById('auth-play-audio').addEventListener('click', function () {
+            const player = document.getElementById('audio-captcha-player');
+            const visualizer = document.getElementById('auth-audio-visualizer');
+            const playBtn = this;
+            if (player.paused) {
+                player.play();
+                visualizer.classList.add('playing');
+                playBtn.querySelector('.play-icon').textContent = '⏸';
+            } else {
+                player.pause();
+                visualizer.classList.remove('playing');
+                playBtn.querySelector('.play-icon').textContent = '▶';
+            }
+        });
+
+        document.getElementById('audio-captcha-player').addEventListener('ended', function () {
+            document.getElementById('auth-audio-visualizer').classList.remove('playing');
+            document.getElementById('auth-play-audio').querySelector('.play-icon').textContent = '▶';
+        });
+
+        document.getElementById('auth-replay-audio').addEventListener('click', function () {
+            const player = document.getElementById('audio-captcha-player');
+            player.currentTime = 0;
+            player.play();
+            document.getElementById('auth-audio-visualizer').classList.add('playing');
+            document.getElementById('auth-play-audio').querySelector('.play-icon').textContent = '⏸';
         });
 
         // Refresh buttons

@@ -13,6 +13,7 @@ from captcha_generators.text_captcha import TextCaptcha
 from captcha_generators.image_captcha import ImageCaptcha
 from captcha_generators.cloudflare_captcha import CloudflareCaptcha
 from captcha_generators.puzzle_captcha import PuzzleCaptcha
+from captcha_generators.audio_captcha import AudioCaptcha
 from captcha_generators.unsplash_client import unsplash_client
 from database import db, User, init_db
 
@@ -27,6 +28,7 @@ text_captcha = TextCaptcha()
 image_captcha = ImageCaptcha()
 cloudflare_captcha = CloudflareCaptcha()
 puzzle_captcha = PuzzleCaptcha()
+audio_captcha = AudioCaptcha()
 
 # Load Unsplash API key from environment variable if available
 if os.environ.get('UNSPLASH_API_KEY'):
@@ -142,6 +144,33 @@ def cleanup_cache():
         'message': 'Cache cleanup completed',
         'stats': unsplash_client.get_cache_stats()
     })
+
+
+# ============== AUDIO CAPTCHA ==============
+
+@app.route('/api/audio-captcha', methods=['GET'])
+def generate_audio_captcha():
+    """Generate a new audio captcha"""
+    result = audio_captcha.generate()
+    # Store the answer in session
+    session['audio_captcha_answer'] = result['text']
+    return jsonify({
+        'audio': result['audio'],
+        'length': len(result['text'])
+    })
+
+
+@app.route('/api/audio-captcha/verify', methods=['POST'])
+def verify_audio_captcha():
+    """Verify audio captcha answer"""
+    data = request.get_json()
+    user_answer = data.get('answer', '').strip()
+    correct_answer = session.get('audio_captcha_answer', '')
+    
+    if user_answer == correct_answer:
+        return jsonify({'success': True, 'message': 'Correct!'})
+    else:
+        return jsonify({'success': False, 'message': 'Incorrect. Try again.'})
 
 
 # ============== TEXT CAPTCHA ==============
@@ -450,6 +479,11 @@ def verify_captcha(captcha_type, form_data):
             return abs(position - correct_x) <= tolerance
         except:
             return False
+    
+    elif captcha_type == 'audio':
+        audio_answer = form_data.get('audio_answer', '').strip()
+        correct_answer = session.get('audio_captcha_answer', '')
+        return audio_answer == correct_answer
     
     return False
 

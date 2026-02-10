@@ -3,3 +3,4 @@ Pillow
 captcha
 requests
 flask-sqlalchemy
+pyttsx3
