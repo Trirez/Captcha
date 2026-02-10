@@ -273,6 +273,9 @@ let placedPieces = {};
 async function loadDragPuzzle() {
     placedPieces = {};
 
+    // Remove any leftover placed pieces from the board
+    document.querySelectorAll('#drag-puzzle-board .draggable-piece').forEach(el => el.remove());
+
     try {
         const res = await fetch('/api/puzzle-captcha/drag');
         dragData = await res.json();
