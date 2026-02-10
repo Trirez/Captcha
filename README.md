@@ -18,21 +18,6 @@ This project provides a basic system to generate CAPTCHA tests, serve them via a
 
 🧪 Testing suite: Includes tests to ensure CAPTCHA generation and validation work as expected.
 
-🗂️ Modular structure: Separate folders for templates, static assets, and generator logic.
-
-📁 Project Structure
-Captcha/
-├── captcha_generators/     # Code to generate captcha images
-├── image_cache/            # Stored/generated captcha assets
-├── instance/               # App instance configs (optional)
-├── static/                 # Static files (CSS/JS/images)
-├── templates/              # HTML templates for web interface
-├── app.py                  # Main application routes and logic
-├── database.py             # (Optional) storage/verification logic
-├── main.py                 # App entry point
-├── test_captchas.py        # Unit tests
-├── requirements.txt        # Dependencies list
-
 🚀 Getting Started
 Prerequisites
 
